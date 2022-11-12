@@ -15,6 +15,7 @@ public class Server : NetworkBehaviour {
 
 
     public static Server Singleton;
+    public static bool Connected = false;
     public static bool Validated = true;
 
     private void Awake() {
@@ -32,7 +33,7 @@ public class Server : NetworkBehaviour {
     }
 
 
-    public ulong ClientId => NetworkManager.Singleton.LocalClientId;
+    public static ulong ClientId => NetworkManager.Singleton.LocalClientId;
     public bool IsNetServer => NetworkManager.Singleton.IsServer;
     private NetworkManager NetManager => NetworkManager.Singleton;
     private UnityTransport NetTransport => NetManager.GetComponent<UnityTransport>();
@@ -64,147 +65,76 @@ public class Server : NetworkBehaviour {
     public Action<PlayerData> OnPlayer_Join;
     public Action<int> OnPlayer_Leave;
 
-
     
 
-    public void StartHost(string port, Action onEndAttemptCallback, Action onSuccessCallback) {
-        // NetManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(versionHash);
+    public void Setup_Host() {
+        Connected = true;
 
-        NetTransport.ConnectionData.Port = Convert.ToUInt16(FormatPort(port));
-        // NetManager.ConnectionApprovalCallback += ApprovalCheck;
+        ClientIndivAllocs = new Dictionary<ulong, ulong[]>(MaxPlayers);
+        ClientInverseSenderAllocs = new Dictionary<ulong, List<ulong>>(MaxPlayers);
 
-        // NetManager.OnServerStarted += () => {
-        //     if(IsServer) {
-        //         // todo
-        //     }
-        // };
+        NetManager.OnClientConnectedCallback += OnClientConnect_Server;
+        NetManager.OnClientDisconnectCallback += OnClientDisconnect_Server;
 
-        if(NetManager.StartHost()) {
-            Debug.Log("Started host.");
+        NetManager.OnClientConnectedCallback += OnClientConnect_Client;
+        NetManager.OnClientDisconnectCallback += OnClientDisconnect_Client;
 
-            NetManager.OnClientConnectedCallback += OnClientConnect;
-            NetManager.OnClientDisconnectCallback += OnClientDisconnect;
+        PlayerDataBank.Clear();
+        _playerIdCounter = 0;
 
-            PlayerDataBank.Clear();
-            _playerIdCounter = 0;
+        OnClientConnect_Client(ClientId);
 
-            PlayerData playerData = BuildLocalPlayerData();
-            playerData.IsHost = true;
-            AddPlayer_ServerRpc(playerData);
-
-            onSuccessCallback();
-        } else {
-            Debug.Log("Failed to start host.");
-        }
-
-        onEndAttemptCallback();
+        // PlayerData playerData = BuildLocalPlayerData();
+        // playerData.IsHost = true;
+        // AddPlayer_ServerRpc(playerData);
     }
 
 
-    public void JoinServer(string ip, string port, TMPro.TMP_Text statusText, Action onEndAttemptCallback, Action onSuccessCallback) {
-        StartCoroutine(JoinServer_C(ip, port, statusText, onEndAttemptCallback, onSuccessCallback));
+    public static void Setup_Join_Init() {
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect_Client;
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect_Client;
     }
 
-    private IEnumerator JoinServer_C(string ip, string port, TMPro.TMP_Text statusText, Action onEndAttemptCallback, Action onSuccessCallback) {
-        // Set IP
-        string rawIP = ip.Trim();
-        NetTransport.ConnectionData.Address = rawIP == "" ? "127.0.0.1" : rawIP;
+    public IEnumerator Setup_Join(Action onFullyLoadedCallback) {
+        _onFullyLoadedCallback = onFullyLoadedCallback;
+        
+        yield return null;
+    }
 
-        if(NetTransport.ConnectionData.Address == "127.0.0.1") {
-            statusText.text = "Invalid IP Address";
-            onEndAttemptCallback();
-            yield break;
-        }
 
-        // Set port
-        NetTransport.ConnectionData.Port = Convert.ToUInt16(FormatPort(port));
+    public static void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response) {
+        string receivedVersionHash = System.Text.Encoding.ASCII.GetString(request.Payload);
 
-        // Ping
-        const float maxPingTime = 7.5f; // Max time of the ping (in seconds)
-        float pingTimer = 0;
-        string connectionAddress = $"{NetTransport.ConnectionData.Address}:{NetTransport.ConnectionData.Port}";
-        Ping ping = new Ping(NetTransport.ConnectionData.Address);
+        bool approve = string.Equals(receivedVersionHash, Game.VersionData.VersionHash);
 
-        string baseMsg = $"Connecting to {connectionAddress}...\n";
-        statusText.text = baseMsg;
-        int lastCount = -1;
+        string approveMsg = approve ? "Approved" : "Failure";
+        Debug.Log($"Checking connection with version hash '{receivedVersionHash}', status: {approveMsg}");
 
-        while(!ping.isDone && pingTimer < maxPingTime) {
-            yield return null;
-            pingTimer += Time.deltaTime;
+        // DEBUG
+        // approve = true;
 
-            int count = Mathf.FloorToInt(pingTimer / 0.75f);
-            if(count != lastCount) {
-                lastCount = count;
-                System.Text.StringBuilder sb = new System.Text.StringBuilder(count);
-                for(int i = 0; i <= count % 4 - 1; i++) {
-                    string space = i < 4 ? " " : "";
-                    sb.Append($"•{space}");
-                }
-                statusText.text = baseMsg + sb.ToString();
-            }
-        }
+        bool createPlayerObject = true;
+        uint? prefabHash = null;
 
-        // Check ping results
-        if(!ping.isDone) {
-            // Connection not found, failure
-            Debug.Log($"Server not found at {connectionAddress}");
-            statusText.text = $"Server not found at {connectionAddress}";
-
-        } else {
-            // Connection found, success
-            Debug.Log("Connection found, connecting...");
-            statusText.text = "Connection found, connecting...";
-
-            // Set validation data
-            // Net.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(Game.VersionData.VersionHash);
-
-            yield return null;
-
-            // Connection should be good to go, so start the client
-            statusText.text = "Starting client...";
-            bool startSuccessful = NetManager.StartClient();
-
-            if(startSuccessful) {
-                statusText.text = "Validating client...";
-
-                float validationTimer = NetManager.NetworkConfig.ClientConnectionBufferTimeout;
-                while(validationTimer > 0 && !Server.Validated) {
-                    yield return null;
-                    validationTimer -= Time.deltaTime;
-                }
-
-                if(Server.Validated) {
-                    Debug.Log("Client started successfully.");
-                    statusText.text = "Client started successfully.";
-
-                    PlayerDataBank.Clear();
-
-                    PlayerData playerData = BuildLocalPlayerData();
-                    AddPlayer_ServerRpc(playerData);
-
-                    onSuccessCallback();
-
-                    statusText.text = "";
-
-                } else {
-                    Debug.Log("Failed to validate client.");
-                    statusText.text = "Failed to validate client.";
-                }
-
-            } else {
-                Debug.Log("Failed to start client.");
-                statusText.text = "Failed to start client.";
-            }
-        }
-
-        onEndAttemptCallback();
+        response.CreatePlayerObject = createPlayerObject;
+        response.PlayerPrefabHash = prefabHash;
+        response.Approved = approve;
+        response.Position = Vector3.zero;
+        response.Rotation = Quaternion.identity;
     }
 
 
 
     public void LeaveLobby() {
         // if(NetworkManager.)  // probably want a check here to see if we're connected to a server already (?)
+
+        RemovePlayer_ServerRpc();
+
+        NetManager.OnClientConnectedCallback -= OnClientConnect_Client;
+        NetManager.OnClientDisconnectCallback -= OnClientDisconnect_Client;
+
+        ClientIndivAllocs = null;
+        ClientInverseSenderAllocs = null;
 
         if(NetworkManager.Singleton.IsServer) EndServer();
 
@@ -221,9 +151,13 @@ public class Server : NetworkBehaviour {
             // Clear variables
             // todo
 
+            // Clear client lists
+            ClientIndivAllocs = null;
+            ClientInverseSenderAllocs = null;
+
             // Remove event listeners
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
-            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect_Server;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect_Server;
 
             Debug.Log("Server closed.");
         }
@@ -232,22 +166,78 @@ public class Server : NetworkBehaviour {
 
 
 
-    private void OnClientConnect(ulong connectedClientId) {
+
+    private void OnClientConnect_Server(ulong connectedClientId) {
         Debug.Log($"Client connected with clientId [{connectedClientId}]");
 
-        // SetValidation_ClientRpc(new ClientRpcParams{ Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { connectedClientId } } });
-
-        ClientRpcParams newConnectionOnly = Clients_Only(connectedClientId);
-
-        foreach(PlayerData pd in PlayerDataBank) {
-            // SendPlayerData_ClientRpc(pd, newConnectionOnly);
-        }
+        // ClientRpcParams newConnectionOnly = Clients_Only(connectedClientId);
     }
 
-    private void OnClientDisconnect(ulong disconnectedClientId) {
+    private void OnClientDisconnect_Server(ulong disconnectedClientId) {
         Debug.Log($"Client disconnected with clientId [{disconnectedClientId}]");
 
         // RemovePlayerData(disconnectedClientId);
+    }
+
+
+
+    private Action _onFullyLoadedCallback = null;
+
+    public void TriggerClientEnabled() {
+        Validated = true;
+        Connected = true;
+
+        PlayerDataBank.Clear();
+
+        PlayerData playerData = BuildLocalPlayerData();
+        if(IsServer || IsHost) playerData.IsHost = true;
+
+        TriggerClientEnabled_ServerRpc(playerData);
+    }
+
+    [ClientRpc]
+    private void TriggerLoadEnd_ClientRpc(ClientRpcParams clientRpcParams = default) {
+        _onFullyLoadedCallback?.Invoke();
+
+        _onFullyLoadedCallback = null;
+    } 
+
+    [ServerRpc(RequireOwnership = false)]
+    private void TriggerClientEnabled_ServerRpc(PlayerData locallyBuiltPlayerData, ServerRpcParams serverRpcParams = default) {
+        // Fuck i have to make these manually cause the allocs dont exist yet
+        ClientRpcParams newConnectionOnly = new ClientRpcParams{ Send = new ClientRpcSendParams { TargetClientIds = new ulong[1]{ serverRpcParams.Receive.SenderClientId } } }; // Clients_Only(serverRpcParams.Receive.SenderClientId);
+        // ClientRpcParams notNewConnectionOnly = Clients_AllBut(serverRpcParams.Receive.SenderClientId);
+
+        // Send out previous full player list to new player
+        Debug.Log($"Preparing to send player data list, current entry count: {PlayerDataBank.Count}");
+
+        for(int i=0;i<PlayerDataBank.Count;i++) {
+            Debug.Log($"Sending player data [{PlayerDataBank[i].PlayerId}]");
+            SendPlayerData_ClientRpc(PlayerDataBank[i], newConnectionOnly);
+        }
+
+        // Add new player for everyone
+        AddPlayer_ServerRpc(locallyBuiltPlayerData, serverRpcParams);
+
+        // Notify new player that they're good to go
+        TriggerLoadEnd_ClientRpc(newConnectionOnly);
+    }
+
+
+
+    private static void OnClientConnect_Client(ulong connectedClientId) {
+        if(connectedClientId == ClientId) {
+            Debug.Log("Set self to connected.");
+            Connected = true;
+        }
+    }
+
+
+    private static void OnClientDisconnect_Client(ulong connectedClientId) {
+        if(connectedClientId == ClientId) {
+            Debug.Log("Set self to disconnected.");
+            Connected = false;
+        }
     }
 
 
@@ -259,12 +249,28 @@ public class Server : NetworkBehaviour {
 
     [ServerRpc(RequireOwnership = false)]
     public void AddPlayer_ServerRpc(PlayerData playerData, ServerRpcParams serverRpcParams = default) {
+        ulong senderClientId = serverRpcParams.Receive.SenderClientId;
+
+        // Add new client ID to list of not itself client ID lists
+        foreach(List<ulong> otherInverseList in ClientInverseSenderAllocs.Values) {
+            otherInverseList.Add(senderClientId);
+        }
+
+        // Create this client's inverse Id list
+        ClientInverseSenderAllocs.Add(senderClientId, new List<ulong>(MaxPlayers - 1));
+        foreach(ulong otherClientId in ClientIndivAllocs.Keys) {
+            ClientInverseSenderAllocs[senderClientId].Add(otherClientId);
+        }
+
+        // Add this client to the list of available clientIds
+        ClientIndivAllocs.Add(senderClientId, new ulong[1]{ senderClientId });
+
+
+        // Define gameplay player id
         playerData.PlayerId = _playerIdCounter++;
 
         PlayerDataBank.Add(playerData);
         OnPlayer_Join?.Invoke(playerData);
-
-        ulong senderClientId = serverRpcParams.Receive.SenderClientId;
 
         if(senderClientId == ClientId) {
             SelfPlayerId = playerData.PlayerId;
@@ -287,19 +293,71 @@ public class Server : NetworkBehaviour {
     }
 
 
-    [ClientRpc]
-    private void SendPlayerData_ClientRpc(PlayerData playerData, ClientRpcParams clientRpcParams = default) {
-        foreach(PlayerData pd in PlayerDataBank) {
-            if(pd.PlayerId == playerData.PlayerId) return;
+    [ServerRpc(RequireOwnership = false)]
+    public void RemovePlayer_ServerRpc(ServerRpcParams serverRpcParams = default) {
+        // Get client id
+        ulong clientId = serverRpcParams.Receive.SenderClientId;
+
+        // Remove client id alloc
+        if(ClientIndivAllocs.ContainsKey(clientId)) ClientIndivAllocs.Remove(clientId);
+
+        // Remove this client's inverse Id list
+        if(ClientInverseSenderAllocs.ContainsKey(clientId)) ClientInverseSenderAllocs.Remove(clientId);
+
+        // Remove client ID to list of not itself client ID lists
+        foreach(List<ulong> otherInverseList in ClientInverseSenderAllocs.Values) {
+            if(otherInverseList.Contains(clientId)) otherInverseList.Remove(clientId);
         }
 
-        PlayerDataBank.Add(playerData);
+
+        RemovePlayer_ClientRpc(clientId);
+    }
+
+    [ClientRpc]
+    private void RemovePlayer_ClientRpc(ulong clientId) {
+
     }
 
 
+    [ClientRpc]
+    private void SendPlayerData_ClientRpc(PlayerData playerData, ClientRpcParams clientRpcParams = default) {
+        Debug.Log($"Receiving data for player '{playerData.PlayerName}' [{playerData.PlayerId}]");
+
+        PlayerDataBank.Add(playerData);
+        OnPlayer_Join?.Invoke(playerData);
+    }
+
+
+
+    [ServerRpc(RequireOwnership = false)]
+    public void DistributePlayerDataChange_ServerRpc(PlayerData playerData, ServerRpcParams serverRpcParams = default) {
+        ulong senderClientId = serverRpcParams.Receive.SenderClientId;
+
+        if(senderClientId != ClientId) {
+            foreach(PlayerData pd in PlayerDataBank) {
+                if(pd.PlayerId == playerData.PlayerId) {
+                    pd.CopyData(playerData);
+                    break;
+                }
+            }
+        }
+
+        DistributePlayerDataChange_ClientRpc(playerData, Clients_AllBut(senderClientId));
+    }
+
+    [ClientRpc]
+    private void DistributePlayerDataChange_ClientRpc(PlayerData playerData, ClientRpcParams clientRpcParams = default) {
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.PlayerId == playerData.PlayerId) {
+                pd.CopyData(playerData);
+                break;
+            }
+        }
+    }
+
     #region Helper Methods
 
-    private static int FormatPort(string rawInput) {
+    public static int FormatPort(string rawInput) {
         string rawPort = rawInput.Trim();
         rawPort = rawPort == "" ? "7777" : rawPort;
         int truePort;

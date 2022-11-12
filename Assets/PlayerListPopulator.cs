@@ -32,12 +32,26 @@ public class PlayerListPopulator : MonoBehaviour {
     }
 
 
+    public void RebuildLobbyUI() {
+        ResetPlayerList();
+
+        foreach(PlayerData playerData in Server.PlayerDataBank) {
+            AddPlayerEntry(playerData);
+        }
+    }
+
+
     public void AddPlayerEntry(PlayerData playerData) {
         PlayerLobbyEntry entry = Instantiate(PlayerLobbyEntryPrefab, PlayerListContainer).GetComponent<PlayerLobbyEntry>();
         entry.Load(playerData.PlayerId, playerData.PlayerName, playerData.PlayerColor);
         // entry.SetUpdateCallback();
 
-        entry.SetInteractable(playerData.PlayerId == Server.SelfPlayerId);
+        bool isThis = playerData.PlayerId == Server.SelfPlayerId;
+        entry.SetInteractable(isThis);
+
+        if(isThis) {
+            entry.SetUpdateCallback(UpdateSelfPlayerEntry);
+        }
 
         // Fix positioning
         Vector2 rtPos = entry.RT.anchoredPosition;
@@ -61,6 +75,20 @@ public class PlayerListPopulator : MonoBehaviour {
         }
 
         RecalculateRTPositions();
+    }
+
+
+    private void UpdateSelfPlayerEntry() {
+        PlayerData data = null;
+        for(int i=0;i<Server.PlayerDataBank.Count;i++) {
+            if(Server.PlayerDataBank[i].PlayerId == Server.SelfPlayerId) {
+                data = Server.PlayerDataBank[i];
+            }
+        }
+
+        if(data != null) {
+            Server.Singleton.DistributePlayerDataChange_ServerRpc(data);
+        }
     }
 
 

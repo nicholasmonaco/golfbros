@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public static class Game {
+	public static VersionData VersionData { get; private set; }
+
     public static GameManager Manager;
 
 
@@ -12,6 +14,15 @@ public static class Game {
 
     static Game() {
 		Application.targetFrameRate = 60; // This should be set in settings, but I'm doing it now because this is stupid.
+
+		LoadVersionData();
+	}
+
+	public static void LoadVersionData() {
+		string versionName = "0.1_b03";
+		string versionHash = versionName;
+
+		VersionData = new VersionData(versionName, versionHash);
 	}
 
 

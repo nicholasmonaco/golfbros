@@ -11,6 +11,7 @@ public class PlayerLobbyEntry : MonoBehaviour {
     [SerializeField] private TMP_InputField NameField;
 
     [NonSerialized] public int Id = -1;
+
     private Action _updateCallback = null;
 
 
@@ -21,8 +22,13 @@ public class PlayerLobbyEntry : MonoBehaviour {
         NameField.text = name;
     }
 
-    public void SetUpdateCallback(System.Action callback) {
+    
+    public void SetUpdateCallback(Action callback) {
         _updateCallback = callback;
+    }
+
+    public void UpdateValues() {
+        _updateCallback?.Invoke();
     }
 
 

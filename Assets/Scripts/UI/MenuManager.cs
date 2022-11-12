@@ -8,6 +8,9 @@ using TMPro;
 public class MenuManager : MonoBehaviour {
     [HideInInspector] public MenuScreenId CurrentScreenId = MenuScreenId.Main;
 
+    [SerializeField] private ServerConnector ServerConnector;
+    [SerializeField] private PlayerListPopulator LobbyListPopulator;
+
     [SerializeField] private MenuScreenBank MenuScreens;
     private MenuScreen CurrentScreen => MenuScreens[CurrentScreenId];
 
@@ -15,6 +18,8 @@ public class MenuManager : MonoBehaviour {
 
     [SerializeField] private List<Button> HostOptionButtons;
     [SerializeField] private List<Button> JoinOptionButtons;
+
+    [Space(3)]
 
     [SerializeField] private TMP_Text ConnectionStatusText;
 
@@ -49,7 +54,7 @@ public class MenuManager : MonoBehaviour {
             SwitchMenuScreen(MenuScreenId.Lobby);
         };
 
-        Server.Singleton.StartHost(Server.LocalHostData.Port, callback, successCallback);
+        ServerConnector.StartHost(Server.LocalHostData.Port, callback, successCallback);
     }
 
 
@@ -68,7 +73,11 @@ public class MenuManager : MonoBehaviour {
             SwitchMenuScreen(MenuScreenId.Lobby);
         };
 
-        Server.Singleton.JoinServer(Server.LocalJoinData.IP, Server.LocalJoinData.Port, ConnectionStatusText, callback, successCallback);
+        Action fullyLoadedCallback = () => {
+            LobbyListPopulator.RebuildLobbyUI();
+        };
+
+        ServerConnector.JoinServer(Server.LocalJoinData.IP, Server.LocalJoinData.Port, ConnectionStatusText, callback, successCallback, fullyLoadedCallback);
     }
 
 

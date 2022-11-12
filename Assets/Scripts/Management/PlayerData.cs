@@ -26,6 +26,12 @@ public class PlayerData : INetworkSerializable {
     }
 
 
+    public void CopyData(PlayerData other) {
+        PlayerName = other.PlayerName;
+        PlayerColor = other.PlayerColor;
+    }
+
+
     public virtual void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter {
         serializer.SerializeValue(ref PlayerId);
         serializer.SerializeValue(ref IsHost);
