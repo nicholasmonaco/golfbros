@@ -10,6 +10,7 @@ public class BallShooter : MonoBehaviour {
     [SerializeField] private SphereCollider PairedCollider;
     [SerializeField] private SmoothSyncNetcode SmoothTransform;
     [SerializeField] private MeshRenderer BallRenderer;
+    [SerializeField] private Outline BallOutline;
     [SerializeField] private NetworkObject PairedNO;
     [SerializeField] private GameObject ShotAssetContainer;
     [SerializeField] private LayerMask GroundMask;
@@ -29,13 +30,13 @@ public class BallShooter : MonoBehaviour {
     [HideInInspector] public Vector3 GravityDir = Vector3.down;
 
     [SerializeField] private float JumpForce = 5;
+    [SerializeField] private float JumpWaitDuration = 0.25f;
 
     [Space(5)]
 
     [SerializeField] private float ViewportRadius = 0.1f;
 
-    [SerializeField] private float Sensitivity_Force = 1;
-    [SerializeField] private float Sensitivity_Rotation = 1;
+    // [SerializeField] private float Sensitivity_Force = 1;
 
     [Space(5)]
 
@@ -51,11 +52,13 @@ public class BallShooter : MonoBehaviour {
 
     private bool _lastReset = false;
     private bool _lastJump = false;
+    private float _jumpWaitTimer = 0;
 
 
 
     private IEnumerator Start() {
         if(!PairedNO.IsOwner) {
+            Destroy(ShotArrowRenderer.gameObject);
             Destroy(this);
         }
 
@@ -64,6 +67,7 @@ public class BallShooter : MonoBehaviour {
 
         _lastReset = false;
         _lastJump = false;
+        _jumpWaitTimer = 0;
 
         while(!IsGrounded()) yield return null;
 
@@ -87,7 +91,9 @@ public class BallShooter : MonoBehaviour {
 
     private void Update() {
         // Jump
-        bool inJump = InputHandler.Sets(InputState.Game).Jump;
+        if(_jumpWaitTimer >= 0) _jumpWaitTimer -= Time.deltaTime;
+
+        bool inJump = InputHandler.Sets(InputState.Game).Jump || InputHandler.Sets(InputState.Game).Activate;
         if(inJump && !_lastJump) {
             Jump();
         }
@@ -232,7 +238,9 @@ public class BallShooter : MonoBehaviour {
 
 
     public void Jump() {
-        if(!IsGrounded()) return;
+        if(Shootable || _jumpWaitTimer > 0 || !IsGrounded()) return;
+
+        _jumpWaitTimer = JumpWaitDuration;
 
         Vector3 normal = GetNormal();
         PairedRB.AddForce(normal * JumpForce, ForceMode.Impulse);
@@ -241,6 +249,7 @@ public class BallShooter : MonoBehaviour {
 
     public void SetColor(Color c) {
         BallRenderer.material.SetColor("_Color", c);
+        BallOutline.OutlineColor = c;
     }
 
 
