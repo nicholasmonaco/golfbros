@@ -1,13 +1,4 @@
 {
-  "scopedRegistries": [
-    {
-      "name": "npmjs",
-      "url": "https://registry.npmjs.org/",
-      "scopes": [
-        "com.unity.uiextensions"
-      ]
-    }
-  ],
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.addressables": "1.19.19",
@@ -23,7 +14,6 @@
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.6.4",
     "com.unity.ugui": "1.0.0",
-    "com.unity.uiextensions": "https://bitbucket.org/UnityUIExtensions/unity-ui-extensions.git",
     "com.unity.visualeffectgraph": "12.1.7",
     "com.unity.visualscripting": "1.7.8",
     "com.veriorpies.parrelsync": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync",

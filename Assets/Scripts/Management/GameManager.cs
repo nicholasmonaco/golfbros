@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
     public SmoothFollow CameraBallFollow;
-
+    public MenuManager MenuManager;
 
 
 

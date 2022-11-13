@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +7,9 @@ using Unity.Netcode;
 public class PlayerData : INetworkSerializable {
     public int PlayerId = -1;
     public bool IsHost = false;
+
+    [NonSerialized] public ulong ClientId;
+    public bool Ready;
 
     public string PlayerName = "Player";
     public Color PlayerColor = Color.white;
@@ -29,6 +33,7 @@ public class PlayerData : INetworkSerializable {
     public void CopyData(PlayerData other) {
         PlayerName = other.PlayerName;
         PlayerColor = other.PlayerColor;
+        Ready = other.Ready;
     }
 
 
@@ -36,6 +41,7 @@ public class PlayerData : INetworkSerializable {
         serializer.SerializeValue(ref PlayerId);
         serializer.SerializeValue(ref IsHost);
         serializer.SerializeValue(ref PlayerColor);
+        serializer.SerializeValue(ref Ready);
 
         serializer.SerializeValue(ref PlayerName);
     }

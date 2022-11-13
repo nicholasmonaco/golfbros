@@ -18,11 +18,17 @@ public class MenuManager : MonoBehaviour {
 
     [SerializeField] private List<Button> HostOptionButtons;
     [SerializeField] private List<Button> JoinOptionButtons;
+    [SerializeField] private Button ReadyButton;
 
     [Space(3)]
 
     [SerializeField] private TMP_Text ConnectionStatusText;
 
+
+
+    private void Start() {
+        SwitchMenuScreen(MenuScreenId.Main, true);
+    }
 
 
     public void SwitchMenuScreen(int newScreen) => SwitchMenuScreen((MenuScreenId)newScreen, false);
@@ -91,10 +97,18 @@ public class MenuManager : MonoBehaviour {
 
 
     public void ReadyUp() {
-        
+        ReadyButton.interactable = false;
+        Server.Singleton.ReadyUp_ServerRpc();
+    }
+
+    public void ResetReady() {
+        ReadyButton.interactable = true;
     }
 
 
+    public void RefreshLobbyVisuals() {
+        LobbyListPopulator.RebuildLobbyUI();
+    }
 }
 
 public enum MenuScreenId {

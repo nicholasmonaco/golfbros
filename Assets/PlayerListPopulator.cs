@@ -53,9 +53,13 @@ public class PlayerListPopulator : MonoBehaviour {
             entry.SetUpdateCallback(UpdateSelfPlayerEntry);
         }
 
+        entry.ToggleReady(playerData.Ready);
+
+        PlayerLobbyEntries.Add(entry);
+
         // Fix positioning
         Vector2 rtPos = entry.RT.anchoredPosition;
-        rtPos.y = Offset + Spacing * (PlayerLobbyEntries.Count - 1);
+        rtPos.y = -(Offset + Spacing * (PlayerLobbyEntries.Count - 1));
         entry.RT.anchoredPosition = rtPos;
     }
 
@@ -78,11 +82,14 @@ public class PlayerListPopulator : MonoBehaviour {
     }
 
 
-    private void UpdateSelfPlayerEntry() {
+    private void UpdateSelfPlayerEntry(Color color, string newName) {
         PlayerData data = null;
         for(int i=0;i<Server.PlayerDataBank.Count;i++) {
             if(Server.PlayerDataBank[i].PlayerId == Server.SelfPlayerId) {
                 data = Server.PlayerDataBank[i];
+
+                data.PlayerName = newName;
+                data.PlayerColor = color;
             }
         }
 
@@ -96,7 +103,7 @@ public class PlayerListPopulator : MonoBehaviour {
         for(int i=0;i<PlayerLobbyEntries.Count;i++) {
             PlayerLobbyEntry entry = PlayerLobbyEntries[i];
             Vector2 rtPos = entry.RT.anchoredPosition;
-            rtPos.y = Offset + Spacing * i;
+            rtPos.y = -(Offset + Spacing * i);
             entry.RT.anchoredPosition = rtPos;
         }
     }

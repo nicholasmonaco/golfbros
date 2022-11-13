@@ -2519,6 +2519,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CameraBallFollow: {fileID: 502795883}
+  MenuManager: {fileID: 1723670202}
 --- !u!4 &912650969
 Transform:
   m_ObjectHideFlags: 0
@@ -2905,7 +2906,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1106742251}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eba052be4cf29da4aab3a5e8e8550819, type: 3}
+  m_Script: {fileID: 11500000, guid: 951af8f37b0fbc34eb1414619e5844e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1114120276
@@ -5359,6 +5360,7 @@ MonoBehaviour:
   JoinOptionButtons:
   - {fileID: 2021239683}
   - {fileID: 2096564029}
+  ReadyButton: {fileID: 1764881551}
   ConnectionStatusText: {fileID: 1278458206}
 --- !u!114 &1723670203
 MonoBehaviour:
@@ -5430,6 +5432,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerListPopulator: {fileID: 880128450}
+--- !u!114 &1764881551 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 840680067172091127, guid: aaad7ee419c5fcf4ebf7ede3bd3fa59f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1535975731}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1777038972
 GameObject:
   m_ObjectHideFlags: 0

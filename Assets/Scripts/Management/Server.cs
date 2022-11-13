@@ -128,8 +128,6 @@ public class Server : NetworkBehaviour {
     public void LeaveLobby() {
         // if(NetworkManager.)  // probably want a check here to see if we're connected to a server already (?)
 
-        RemovePlayer_ServerRpc();
-
         NetManager.OnClientConnectedCallback -= OnClientConnect_Client;
         NetManager.OnClientDisconnectCallback -= OnClientDisconnect_Client;
 
@@ -177,6 +175,8 @@ public class Server : NetworkBehaviour {
         Debug.Log($"Client disconnected with clientId [{disconnectedClientId}]");
 
         // RemovePlayerData(disconnectedClientId);
+
+        RemovePlayer_ServerRpc(disconnectedClientId);
     }
 
 
@@ -205,14 +205,11 @@ public class Server : NetworkBehaviour {
     [ServerRpc(RequireOwnership = false)]
     private void TriggerClientEnabled_ServerRpc(PlayerData locallyBuiltPlayerData, ServerRpcParams serverRpcParams = default) {
         // Fuck i have to make these manually cause the allocs dont exist yet
-        ClientRpcParams newConnectionOnly = new ClientRpcParams{ Send = new ClientRpcSendParams { TargetClientIds = new ulong[1]{ serverRpcParams.Receive.SenderClientId } } }; // Clients_Only(serverRpcParams.Receive.SenderClientId);
+        ClientRpcParams newConnectionOnly = new ClientRpcParams{ Send = new ClientRpcSendParams { TargetClientIds = new ulong[1]{ serverRpcParams.Receive.SenderClientId } } };
         // ClientRpcParams notNewConnectionOnly = Clients_AllBut(serverRpcParams.Receive.SenderClientId);
 
         // Send out previous full player list to new player
-        Debug.Log($"Preparing to send player data list, current entry count: {PlayerDataBank.Count}");
-
         for(int i=0;i<PlayerDataBank.Count;i++) {
-            Debug.Log($"Sending player data [{PlayerDataBank[i].PlayerId}]");
             SendPlayerData_ClientRpc(PlayerDataBank[i], newConnectionOnly);
         }
 
@@ -268,9 +265,10 @@ public class Server : NetworkBehaviour {
 
         // Define gameplay player id
         playerData.PlayerId = _playerIdCounter++;
+        playerData.ClientId = senderClientId;
 
         PlayerDataBank.Add(playerData);
-        OnPlayer_Join?.Invoke(playerData);
+        // OnPlayer_Join?.Invoke(playerData); // Don't need to call this here, its a client thing
 
         if(senderClientId == ClientId) {
             SelfPlayerId = playerData.PlayerId;
@@ -288,15 +286,16 @@ public class Server : NetworkBehaviour {
         
         if(!IsHost) {
             PlayerDataBank.Add(playerData);
-            OnPlayer_Join?.Invoke(playerData);
         }
+
+        OnPlayer_Join?.Invoke(playerData);
     }
 
 
     [ServerRpc(RequireOwnership = false)]
-    public void RemovePlayer_ServerRpc(ServerRpcParams serverRpcParams = default) {
+    public void RemovePlayer_ServerRpc(ulong clientId) {
         // Get client id
-        ulong clientId = serverRpcParams.Receive.SenderClientId;
+        // ulong clientId = serverRpcParams.Receive.SenderClientId;
 
         // Remove client id alloc
         if(ClientIndivAllocs.ContainsKey(clientId)) ClientIndivAllocs.Remove(clientId);
@@ -310,21 +309,53 @@ public class Server : NetworkBehaviour {
         }
 
 
-        RemovePlayer_ClientRpc(clientId);
+
+        PlayerData removedData = null;
+        int removeIndex = -1;
+        for(int i=0;i<PlayerDataBank.Count;i++) {
+            PlayerData pd = PlayerDataBank[i];
+            if(pd.ClientId == clientId) {
+                removedData = pd;
+                removeIndex = i;
+                break;
+            }
+        }
+
+
+        if(removedData != null) {
+            PlayerDataBank.RemoveAt(removeIndex);
+        }
+
+
+        RemovePlayer_ClientRpc(removedData.PlayerId);
     }
 
     [ClientRpc]
-    private void RemovePlayer_ClientRpc(ulong clientId) {
+    private void RemovePlayer_ClientRpc(int playerId) {
+        PlayerData removedData = null;
+        int removeIndex = -1;
+        for(int i=0;i<PlayerDataBank.Count;i++) {
+            PlayerData pd = PlayerDataBank[i];
+            if(pd.PlayerId == playerId) {
+                removedData = pd;
+                removeIndex = i;
+                break;
+            }
+        }
 
+        if(removedData != null) {
+            if(!IsHost) {
+                PlayerDataBank.RemoveAt(removeIndex);
+            }
+        }
+
+        OnPlayer_Leave?.Invoke(playerId);
     }
 
 
     [ClientRpc]
     private void SendPlayerData_ClientRpc(PlayerData playerData, ClientRpcParams clientRpcParams = default) {
-        Debug.Log($"Receiving data for player '{playerData.PlayerName}' [{playerData.PlayerId}]");
-
         PlayerDataBank.Add(playerData);
-        OnPlayer_Join?.Invoke(playerData);
     }
 
 
@@ -333,16 +364,14 @@ public class Server : NetworkBehaviour {
     public void DistributePlayerDataChange_ServerRpc(PlayerData playerData, ServerRpcParams serverRpcParams = default) {
         ulong senderClientId = serverRpcParams.Receive.SenderClientId;
 
-        if(senderClientId != ClientId) {
-            foreach(PlayerData pd in PlayerDataBank) {
-                if(pd.PlayerId == playerData.PlayerId) {
-                    pd.CopyData(playerData);
-                    break;
-                }
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.PlayerId == playerData.PlayerId) {
+                pd.CopyData(playerData);
+                break;
             }
         }
 
-        DistributePlayerDataChange_ClientRpc(playerData, Clients_AllBut(senderClientId));
+        DistributePlayerDataChange_ClientRpc(playerData);
     }
 
     [ClientRpc]
@@ -353,7 +382,44 @@ public class Server : NetworkBehaviour {
                 break;
             }
         }
+
+        Game.Manager.MenuManager.RefreshLobbyVisuals();
     }
+
+
+
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ReadyUp_ServerRpc(ServerRpcParams serverRpcParams = default) {
+        PlayerData data = null;
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.ClientId == serverRpcParams.Receive.SenderClientId) {
+                pd.Ready = true;
+                data = pd;
+            }
+        }
+
+        if(data != null) {
+            DistributePlayerDataChange_ClientRpc(data);
+        }
+
+        bool allPlayersReady = true;
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(!pd.Ready) {
+                allPlayersReady = false;
+                break;
+            }
+        }
+
+        if(allPlayersReady) {
+            // Start game
+            // todo
+        }
+    }
+
+
+
+
 
     #region Helper Methods
 

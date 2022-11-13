@@ -15,7 +15,7 @@ public class InputManager : MonoBehaviour {
     }
 
     private void Update() {
-        // InputHandler.UpdateCurrentState();
+        InputHandler.UpdateCurrentState();
     }
 }
 
