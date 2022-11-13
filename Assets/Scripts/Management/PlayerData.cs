@@ -11,6 +11,9 @@ public class PlayerData : INetworkSerializable {
     [NonSerialized] public ulong ClientId;
     public bool Ready;
 
+    public NetworkBehaviourReference LinkedPlayerManagerRef;
+    public PlayerManager LinkedPlayerManager => (PlayerManager)LinkedPlayerManagerRef;
+
     public string PlayerName = "Player";
     public Color PlayerColor = Color.white;
 
@@ -42,6 +45,7 @@ public class PlayerData : INetworkSerializable {
         serializer.SerializeValue(ref IsHost);
         serializer.SerializeValue(ref PlayerColor);
         serializer.SerializeValue(ref Ready);
+        serializer.SerializeValue(ref LinkedPlayerManagerRef);
 
         serializer.SerializeValue(ref PlayerName);
     }

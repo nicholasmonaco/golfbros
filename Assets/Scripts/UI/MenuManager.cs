@@ -19,6 +19,7 @@ public class MenuManager : MonoBehaviour {
     [SerializeField] private List<Button> HostOptionButtons;
     [SerializeField] private List<Button> JoinOptionButtons;
     [SerializeField] private Button ReadyButton;
+    [SerializeField] private TMP_Dropdown CourseDropdown;
 
     [Space(3)]
 
@@ -27,6 +28,8 @@ public class MenuManager : MonoBehaviour {
 
 
     private void Start() {
+        PopulateCourseOptions();
+
         SwitchMenuScreen(MenuScreenId.Main, true);
     }
 
@@ -108,6 +111,19 @@ public class MenuManager : MonoBehaviour {
 
     public void RefreshLobbyVisuals() {
         LobbyListPopulator.RebuildLobbyUI();
+    }
+
+
+
+    private void PopulateCourseOptions() {
+        List<string> courses = new List<string>() {
+            "Jacklands",
+            "Juicelands",
+            "Froglands"
+        };
+
+        CourseDropdown.ClearOptions();
+        CourseDropdown.AddOptions(courses);
     }
 }
 

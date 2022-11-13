@@ -4,6 +4,7 @@ using UnityEngine;
 
 [ExecuteAlways]
 public class CameraController : MonoBehaviour {
+    public Camera Camera;
     public Transform CameraContainerTransform;
     public Transform RevolvePoint;
 
@@ -15,6 +16,8 @@ public class CameraController : MonoBehaviour {
     [Space(5)]
 
     [SerializeField] private float _menuAngleSpeed = 0;
+    [SerializeField] private float _panSensitivity = 1;
+    [SerializeField] private float _panLerpSpeed = 20;
     [SerializeField] private float _angle = 0;
 
     [Space(5)]
@@ -24,7 +27,13 @@ public class CameraController : MonoBehaviour {
 
 
     private void Update() {
-        if(Application.IsPlaying(gameObject) && InMenu) Update_Menu();
+        if(Application.IsPlaying(gameObject)) {
+            if(InMenu) {
+                Update_Menu();
+            } else {
+                Update_Game();
+            }
+        }
 
         // Set position
         Vector3 revolvePoint = RevolvePoint.position + new Vector3(0, YOffset, 0);
@@ -54,5 +63,14 @@ public class CameraController : MonoBehaviour {
         _angle += _menuAngleSpeed * Time.deltaTime;
 
         if(_angle >= 360) _angle -= 360;
+    }
+
+    private void Update_Game() {
+        if(InputHandler.Sets(InputState.Game).Pan) {
+            float angle = _angle + InputHandler.Sets(InputState.Game).Look.x * _panSensitivity;
+            _angle = Mathf.Lerp(_angle, angle, Time.deltaTime * _panLerpSpeed);
+
+            if(_angle >= 360) _angle -= 360;
+        }
     }
 }

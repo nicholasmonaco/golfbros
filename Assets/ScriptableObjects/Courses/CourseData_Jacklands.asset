@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c008b4e05bf14a34a965762a21c4de42, type: 3}
+  m_Name: CourseData_Jacklands
+  m_EditorClassIdentifier: 
+  CourseName: Jacklands
+  CoursePrefab: {fileID: 7955662248570046364, guid: edcf9dff51fad374ebe06f1989ec19c0,
+    type: 3}
+  SkyboxMaterial: {fileID: 2100000, guid: f36dde7584ecd9848b9aa657b83b41b8, type: 2}
+  MusicData:
+    Music_Intro:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+    Music_Loop:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+    Volume: 1

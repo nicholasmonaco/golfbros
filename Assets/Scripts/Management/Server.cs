@@ -35,6 +35,7 @@ public class Server : NetworkBehaviour {
 
     public static ulong ClientId => NetworkManager.Singleton.LocalClientId;
     public bool IsNetServer => NetworkManager.Singleton.IsServer;
+    public bool IsNetHost => NetworkManager.Singleton.IsHost;
     private NetworkManager NetManager => NetworkManager.Singleton;
     private UnityTransport NetTransport => NetManager.GetComponent<UnityTransport>();
 
@@ -57,18 +58,33 @@ public class Server : NetworkBehaviour {
     public static JoinData LocalJoinData;
     public static PlayerCustomizationData CustomizationData;
 
+    public static LobbySettings CurrentLobbySettings = new LobbySettings();
+    public static GameLobbyData CurrentGameData = new GameLobbyData();
+
 
     public static List<PlayerData> PlayerDataBank;
     private int _playerIdCounter = 0;
     public static int SelfPlayerId { get; private set; } = -1;
 
+    public static PlayerManager GetLocalPlayer() {
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.PlayerId == SelfPlayerId) return pd.LinkedPlayerManager;
+        }
+
+        return null;
+    }
+
     public Action<PlayerData> OnPlayer_Join;
     public Action<int> OnPlayer_Leave;
+
+    public Action OnLobbySettingsUpdate = null;
 
     
 
     public void Setup_Host() {
         Connected = true;
+
+        CurrentLobbySettings.SetDefault();
 
         ClientIndivAllocs = new Dictionary<ulong, ulong[]>(MaxPlayers);
         ClientInverseSenderAllocs = new Dictionary<ulong, List<ulong>>(MaxPlayers);
@@ -93,6 +109,8 @@ public class Server : NetworkBehaviour {
     public static void Setup_Join_Init() {
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect_Client;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect_Client;
+
+        CurrentLobbySettings.SetDefault();
     }
 
     public IEnumerator Setup_Join(Action onFullyLoadedCallback) {
@@ -183,13 +201,14 @@ public class Server : NetworkBehaviour {
 
     private Action _onFullyLoadedCallback = null;
 
-    public void TriggerClientEnabled() {
+    public void TriggerClientEnabled(PlayerManager linkedPlayer) {
         Validated = true;
         Connected = true;
 
         PlayerDataBank.Clear();
 
         PlayerData playerData = BuildLocalPlayerData();
+        playerData.LinkedPlayerManagerRef = linkedPlayer;
         if(IsServer || IsHost) playerData.IsHost = true;
 
         TriggerClientEnabled_ServerRpc(playerData);
@@ -200,6 +219,8 @@ public class Server : NetworkBehaviour {
         _onFullyLoadedCallback?.Invoke();
 
         _onFullyLoadedCallback = null;
+
+        RequestBallSpawn_ServerRpc();
     } 
 
     [ServerRpc(RequireOwnership = false)]
@@ -216,8 +237,25 @@ public class Server : NetworkBehaviour {
         // Add new player for everyone
         AddPlayer_ServerRpc(locallyBuiltPlayerData, serverRpcParams);
 
+        // Send game data to connection
+        SetCurrentGameData_ClientRpc(CurrentGameData);
+        
+
         // Notify new player that they're good to go
         TriggerLoadEnd_ClientRpc(newConnectionOnly);
+
+        // Load current stage on server if this is the server
+        if(locallyBuiltPlayerData.IsHost) {
+            CurrentGameData.LoadedCourse = Game.Manager.CourseLoader.LobbyCourse;
+            StartGame_ServerRpc();
+
+        } else {
+            // Load the current stage for the non-host
+            StartGame_ClientRpc(false, newConnectionOnly);
+        }
+
+
+        LoadCurrentHole_ClientRpc(newConnectionOnly);
     }
 
 
@@ -413,11 +451,119 @@ public class Server : NetworkBehaviour {
 
         if(allPlayersReady) {
             // Start game
-            // todo
+            CurrentGameData.LoadedCourse = CurrentLobbySettings.Course;
+            CurrentGameData.HoleIndex = 0;
+            SetCurrentGameData_ClientRpc(CurrentGameData);
+
+            
+
+            StartGame_ServerRpc(true);
         }
     }
 
 
+
+    [ClientRpc]
+    public void DistributeLobbyData_ClientRpc(LobbySettings lobbySettings, ClientRpcParams clientRpcParams = default) {
+        CurrentLobbySettings.CopyData(lobbySettings);
+        
+        // Callback for update
+        OnLobbySettingsUpdate?.Invoke();
+    }
+
+
+
+    #region Gameplay
+
+    [ServerRpc]
+    public void StartGame_ServerRpc(bool closeMenus = false) {
+        Game.Manager.CourseLoader.LoadCourse(CurrentGameData.LoadedCourse);
+
+        StartGame_ClientRpc(closeMenus);
+
+        LoadCurrentHole_ClientRpc();
+    }
+
+
+    [ClientRpc]
+    private void StartGame_ClientRpc(bool closeMenus = false, ClientRpcParams clientRpcParams = default) {
+        if(!IsHost) {
+            Game.Manager.CourseLoader.LoadCourse(CurrentGameData.LoadedCourse);
+        }
+
+        if(closeMenus) {
+            Game.Manager.MenuManager.SwitchMenuScreen(MenuScreenId.Game_Main);
+
+            Game.Manager.CameraController.InMenu = false;
+        }   
+    }
+
+
+
+
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestBallSpawn_ServerRpc(ServerRpcParams serverRpcParams = default) {
+        ulong clientId = serverRpcParams.Receive.SenderClientId;
+
+        NetworkObject ballNO = Instantiate(Game.Manager.BallPrefab).GetComponent<NetworkObject>();
+        ballNO.SpawnWithOwnership(clientId);
+
+        SmoothSyncNetcode smooth = ballNO.GetComponent<SmoothSyncNetcode>();
+        SetPlayerBall_ClientRpc(smooth, Clients_Only(clientId));
+    }
+
+    [ClientRpc]
+    private void SetPlayerBall_ClientRpc(NetworkBehaviourReference ballSmoothRef, ClientRpcParams clientRpcParams = default) {
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.PlayerId == SelfPlayerId) {
+                pd.LinkedPlayerManager.Ball = (SmoothSyncNetcode)ballSmoothRef;
+            }
+        }
+    }
+
+
+
+    [ServerRpc]
+    public void LoadHole_ServerRpc(int holeIndex) {
+        CurrentGameData.HoleIndex = holeIndex;
+
+        SetCurrentGameData_ClientRpc(CurrentGameData);
+    }
+
+
+    [ClientRpc]
+    public void SetCurrentGameData_ClientRpc(GameLobbyData currentGameData) {
+        CurrentGameData.CopyData(currentGameData);
+    }
+
+
+    [ClientRpc]
+    private void LoadCurrentHole_ClientRpc(ClientRpcParams clientRpcParams = default) {
+        StartCoroutine(LoadCurrentHole_C());
+    }
+
+    private IEnumerator LoadCurrentHole_C() {
+        // Teleport player to start point
+        HoleData hole = Game.Manager.CourseData.HoleDataList[CurrentGameData.HoleIndex];
+
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.PlayerId == SelfPlayerId) {
+                while(pd.LinkedPlayerManager.Ball == null) {
+                    yield return null;
+                }
+
+                Game.Manager.CourseLoader.LoadHole(CurrentGameData.HoleIndex);
+
+                pd.LinkedPlayerManager.Ball.setPosition(hole.StartPoint.position, true);
+
+                break;
+            }
+        }
+    }
+
+
+    #endregion
 
 
 

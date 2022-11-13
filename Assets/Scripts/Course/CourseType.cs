@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum CourseType {
-    None = 0,
-
-    Jacklands = 1,
-    Juicelands = 2,
-    Froglands = 3,
+    Jacklands = 0,
+    Juicelands = 1,
+    Froglands = 2,
+    Sandbox = 3,
 }

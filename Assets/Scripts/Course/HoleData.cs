@@ -1,8 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class HoleData {
     public CameraTrackMode CameraMode = CameraTrackMode.HolePoint;
 
@@ -11,11 +12,19 @@ public class HoleData {
     [Space(5)]
 
     public Transform StartPoint;
-    public List<Transform> GoalPoint;
+    public List<GoalData> GoalPoint;
 }
 
 public enum CameraTrackMode {
     HolePoint = 0,
     BallTrack = 1,
     BallTrackYLock = 2
+}
+
+[Serializable]
+public class GoalData {
+    public Transform GoalPoint;
+    public Vector3 Scale = Vector3.one;
+
+    public Collider UsedCollider = null;
 }

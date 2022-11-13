@@ -106,7 +106,7 @@ public static class InputHandler {
     public static InputState State { get; private set; } = InputState.None;
     public static InputState LastState { get; private set; } = InputState.None;
 
-    private const InputState CursorLockMask = InputState.None | InputState.Game | InputState.Chat | InputState.Debug; 
+    private const InputState CursorLockMask = InputState.None /*| InputState.Game | InputState.Chat | InputState.Debug*/; 
     public static bool CursorLocked => (State & CursorLockMask) != 0;
 
     private static Dictionary<InputState, InputSet> InputMap;
