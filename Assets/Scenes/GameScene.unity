@@ -1688,8 +1688,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TrackedTransform: {fileID: 0}
-  LerpSpeed: 20
+  LerpSpeed: 2
   SnapDistance: 0.01
+  MaxSnapDistance: 1
 --- !u!1001 &556414237
 PrefabInstance:
   m_ObjectHideFlags: 0

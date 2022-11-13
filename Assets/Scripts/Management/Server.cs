@@ -405,6 +405,10 @@ public class Server : NetworkBehaviour {
         foreach(PlayerData pd in PlayerDataBank) {
             if(pd.PlayerId == playerData.PlayerId) {
                 pd.CopyData(playerData);
+
+                // Apply changes to ball/world
+                pd.LinkedPlayerManager.Ball.GetComponent<BallShooter>().SetColor(pd.PlayerColor);
+
                 break;
             }
         }
@@ -417,6 +421,10 @@ public class Server : NetworkBehaviour {
         foreach(PlayerData pd in PlayerDataBank) {
             if(pd.PlayerId == playerData.PlayerId) {
                 pd.CopyData(playerData);
+
+                // Apply changes to ball/world
+                pd.LinkedPlayerManager.Ball.GetComponent<BallShooter>().SetColor(pd.PlayerColor);
+                
                 break;
             }
         }
@@ -556,6 +564,8 @@ public class Server : NetworkBehaviour {
                 Game.Manager.CourseLoader.LoadHole(CurrentGameData.HoleIndex);
 
                 pd.LinkedPlayerManager.Ball.setPosition(hole.StartPoint.position, true);
+                pd.LinkedPlayerManager.Ball.rb.velocity = Vector3.zero;
+                pd.LinkedPlayerManager.Ball.rb.angularVelocity = Vector3.zero;
 
                 break;
             }

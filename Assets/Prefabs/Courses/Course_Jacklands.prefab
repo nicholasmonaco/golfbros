@@ -61,7 +61,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4894531799360390988}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -27.594}
 --- !u!65 &2275090777247441484
 BoxCollider:
@@ -216,10 +216,25 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -1538112130698044685, guid: c56ceeeb567523b4ba75d6ac06ed265e,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -4.2
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: c56ceeeb567523b4ba75d6ac06ed265e,
         type: 3}
       propertyPath: m_Name
       value: jackTrack
+      objectReference: {fileID: 0}
+    - target: {fileID: 5094653676494281999, guid: c56ceeeb567523b4ba75d6ac06ed265e,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.063
+      objectReference: {fileID: 0}
+    - target: {fileID: 5094653676494281999, guid: c56ceeeb567523b4ba75d6ac06ed265e,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.357
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c56ceeeb567523b4ba75d6ac06ed265e, type: 3}
@@ -429,6 +444,26 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -1476233847635063552, guid: c56ceeeb567523b4ba75d6ac06ed265e, type: 3}
+--- !u!1 &5582522598473247174 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2526847130986953534, guid: c56ceeeb567523b4ba75d6ac06ed265e,
+    type: 3}
+  m_PrefabInstance: {fileID: 7955662249470169848}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &69616750912439963
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5582522598473247174}
+  m_Material: {fileID: 13400000, guid: 333fe7059b3305d4badff6f0f712463d, type: 2}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 5465182334942290787, guid: c56ceeeb567523b4ba75d6ac06ed265e, type: 3}
 --- !u!1 &5591684125590354244 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -6633353941647660100, guid: c56ceeeb567523b4ba75d6ac06ed265e,

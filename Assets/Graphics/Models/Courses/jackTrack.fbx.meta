@@ -3,7 +3,92 @@ guid: c56ceeeb567523b4ba75d6ac06ed265e
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cherry
+    second: {fileID: 2100000, guid: 1f554f0358ed35344a70c25400623f64, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Egg White.001
+    second: {fileID: 2100000, guid: 8e8d1dcbab01fae4ea1e670fe623bfd8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Egg Yellow.001
+    second: {fileID: 2100000, guid: 3c8c5ceca1630f349bcc26375c602213, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Gold
+    second: {fileID: 2100000, guid: 57f3d3513ea4c95428235ad05a4f5dc4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Grey
+    second: {fileID: 2100000, guid: 1566d03a2fd848544b168c3b53d35cd4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: JackBinMaterial
+    second: {fileID: 2100000, guid: 40b0cd6cc1fc71a4780d5641d5d83da6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: JackWheelMaterial
+    second: {fileID: 2100000, guid: 17466ea17c603194ca56a9df9a468ca3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: JogMaterial
+    second: {fileID: 2100000, guid: f999f342b00d021458b09b740d586aa8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: 7d5be1e9759f4764eb75c3710e97b6d1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.001
+    second: {fileID: 2100000, guid: 5fd58e49ef8cf0149b5ab60631be1b35, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.002
+    second: {fileID: 2100000, guid: 1d9507f19040deb4bad495c96e136f98, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.003
+    second: {fileID: 2100000, guid: bf9de7ab36ce238408702ab023dc7481, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Milk
+    second: {fileID: 2100000, guid: 171112385f96e684183564d12c63bb7f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MilkLabel
+    second: {fileID: 2100000, guid: a4b518382e9ef5a4d945e380cb106bd4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Purple
+    second: {fileID: 2100000, guid: f0c0a2f568d361d4a9a6a3e6ff550b3b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Trashcan
+    second: {fileID: 2100000, guid: ad18e1dfa772d814f97552fc490e2475, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: White
+    second: {fileID: 2100000, guid: cc7733b0fe657a44b940a7138592e06a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

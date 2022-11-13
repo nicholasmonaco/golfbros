@@ -100,17 +100,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PairedRB: {fileID: 2977052089340659898}
+  PairedCollider: {fileID: 2809994049187836204}
+  SmoothTransform: {fileID: 7218327213936755179}
+  BallRenderer: {fileID: 6798983313844759572}
   PairedNO: {fileID: 105693272802394117}
   ShotAssetContainer: {fileID: 4205422060850991257}
   GroundMask:
     serializedVersion: 2
     m_Bits: 129
+  BallMask:
+    serializedVersion: 2
+    m_Bits: 64
   ShotArrowRenderer: {fileID: 7466198460272602751}
   GravityDir: {x: 0, y: -1, z: 0}
+  JumpForce: 5
+  ViewportRadius: 0.1
   Sensitivity_Force: 0.01
   Sensitivity_Rotation: 0.5
   Power_Force: 20
   StopThreshold: 0.05
+  StopDuration: 1.35
 --- !u!33 &6227038327891988761
 MeshFilter:
   m_ObjectHideFlags: 0
