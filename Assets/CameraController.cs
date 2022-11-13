@@ -30,9 +30,9 @@ public class CameraController : MonoBehaviour {
         if(Application.IsPlaying(gameObject)) {
             if(InMenu) {
                 Update_Menu();
-            } else {
-                Update_Game();
             }
+
+            Update_Game();
         }
 
         // Set position

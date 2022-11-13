@@ -26,7 +26,12 @@ public class ServerConnector : MonoBehaviour {
     public void StartHost(string port, Action onEndAttemptCallback, Action onSuccessCallback) {
         NetManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(Game.VersionData.VersionHash);
 
-        NetTransport.ConnectionData.Port = Convert.ToUInt16(Server.FormatPort(port));
+        // NetTransport.ConnectionData.Port = Convert.ToUInt16(Server.FormatPort(port));
+        NetTransport.SetConnectionData(
+            "127.0.0.1",
+            Convert.ToUInt16(Server.FormatPort(port)),
+            "0.0.0.0"
+        );
 
         NetManager.OnServerStarted += () => {
             if(NetManager.IsServer) {
@@ -68,17 +73,24 @@ public class ServerConnector : MonoBehaviour {
 
         // Set IP
         string rawIP = ip.Trim();
-        NetTransport.ConnectionData.Address = rawIP == "" ? "127.0.0.1" : rawIP;
+        string checkedIp = rawIP == "" ? "127.0.0.1" : rawIP;
+        // NetTransport.ConnectionData.Address = checkedIp;
 
         // Block self connection
-        if(!Application.isEditor && NetTransport.ConnectionData.Address == "127.0.0.1") {
+        if(!Application.isEditor && checkedIp == "127.0.0.1") {
             statusText.text = "Invalid IP Address";
             onEndAttemptCallback();
             yield break;
         }
 
         // Set port
-        NetTransport.ConnectionData.Port = Convert.ToUInt16(Server.FormatPort(port));
+        // NetTransport.ConnectionData.Port = Convert.ToUInt16(Server.FormatPort(port));
+
+        NetTransport.SetConnectionData(
+            checkedIp,
+            Convert.ToUInt16(Server.FormatPort(port)) // ,
+            // "0.0.0.0"
+        );
 
         // Ping
         const float maxPingTime = 7.5f; // Max time of the ping (in seconds)
