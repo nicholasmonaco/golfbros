@@ -1,0 +1,17 @@
+GDC 2016 assets:
+=================
+BallHit01
+HoleStart01
+Reset01
+WallHit_Fast01
+WallHit_Slow01
+
+Custom Made:
+==============
+WinTrumpets01
+
+GoalHole01 - https://freesound.org/people/AGFX/sounds/20428/
+BallHit02 - https://freesound.org/people/zolopher/sounds/75218/
+BallHit03 - https://freesound.org/people/zolopher/sounds/75204/
+MenuPop01 - https://freesound.org/people/greenvwbeetle/sounds/244652/
+WaterBloop - https://freesound.org/people/kstargio/sounds/611642/

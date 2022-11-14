@@ -409,7 +409,7 @@ public class Server : NetworkBehaviour {
                 pd.CopyData(playerData);
 
                 // Apply changes to ball/world
-                pd.LinkedPlayerManager.Ball.GetComponent<BallShooter>().SetColor(pd.PlayerColor);
+                pd.LinkedPlayerManager.Ball.GetComponent<BallUtil>().SetColor(pd.PlayerColor);
 
                 break;
             }
@@ -425,7 +425,7 @@ public class Server : NetworkBehaviour {
                 pd.CopyData(playerData);
 
                 // Apply changes to ball/world
-                pd.LinkedPlayerManager.Ball.GetComponent<BallShooter>().SetColor(pd.PlayerColor);
+                pd.LinkedPlayerManager.Ball.GetComponent<BallUtil>().SetColor(pd.PlayerColor);
 
                 // Update ui
                 if(pd.PlayerId == SelfPlayerId) {
@@ -582,6 +582,8 @@ public class Server : NetworkBehaviour {
 
                 ball.MarkWonHole(false);
 
+                Game.Manager.PlayGlobalSFX("HoleStart");
+
                 break;
             }
         }
@@ -650,8 +652,6 @@ public class Server : NetworkBehaviour {
         if(allWon) {
             // Move to next hole
             bool wasLastHole = Game.Manager.CourseData.HoleDataList.Count == CurrentGameData.HoleIndex + 1;
-
-            Debug.Log($"Was last hole: {wasLastHole}  |  cur goal count: {Game.Manager.CourseData.HoleDataList.Count}");
 
             if(!wasLastHole) {
                 // Go to next hole

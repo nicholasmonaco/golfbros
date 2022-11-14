@@ -51,3 +51,11 @@ public class SerializableKVP<TKey, TValue> {
 
 [Serializable] public class CourseBank : SerializableDictionary<CourseType, CourseData> { }
 [Serializable] public class MenuScreenBank : SerializableDictionary<MenuScreenId, MenuScreen> { }
+[Serializable] public class SFXBank : SerializableDictionary<string, AudioClipData> { }
+
+
+[Serializable]
+public class AudioClipData {
+    public AudioClip Clip;
+    public float Volume = 1;
+}

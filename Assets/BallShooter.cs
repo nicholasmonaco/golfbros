@@ -6,14 +6,22 @@ using UnityEngine.InputSystem;
 using Smooth;
 
 public class BallShooter : MonoBehaviour {
+    public BallUtil BallUtil;
+
+    [Space(5)]
+
     [SerializeField] private Rigidbody PairedRB;
     [SerializeField] private SphereCollider PairedCollider;
     [SerializeField] private SmoothSyncNetcode SmoothTransform;
-    [SerializeField] private MeshRenderer BallRenderer;
-    [SerializeField] private Outline BallOutline;
     [SerializeField] private NetworkObject PairedNO;
     [SerializeField] private GameObject ShotAssetContainer;
     [SerializeField] private LayerMask GroundMask;
+    private AudioSource BallSFXPlayer => BallUtil.BallSFXPlayer;
+
+    [Space(5)]
+
+    [SerializeField] private float FastSFXThreshold = 1;
+    [SerializeField] private SFXBank SFXBank;
 
     [Space(5)]
 
@@ -54,12 +62,6 @@ public class BallShooter : MonoBehaviour {
     private Vector3? _lastStablePosition = null;
 
 
-    [Space(5)]
-
-    [SerializeField, Range(0, 1f)] private float OutlineIntensity = 0.8f;
-    [SerializeField, Range(0, 1f)] private float OutlineAlpha = 1;
-
-
     private float ForceAmount = 0;
     private float RotationAngle = 0;
     private bool ShotEngaged = false;
@@ -78,6 +80,10 @@ public class BallShooter : MonoBehaviour {
             Destroy(ShotArrowRenderer.gameObject);
             Destroy(this);
         }
+
+        if(Game.Manager.CurrentAudioListener != null) Destroy(Game.Manager.CurrentAudioListener);
+        Game.Manager.CurrentAudioListener = Instantiate(Game.Manager.AudioListenerPrefab, transform);
+        Game.Manager.CurrentAudioListener.transform.localPosition = Vector3.zero;
 
         ShotArrowScale_Base = ShotArrowRenderer.transform.localScale;
 
@@ -225,6 +231,8 @@ public class BallShooter : MonoBehaviour {
 
         Hit_Internal(forceDir * finalForce);
 
+        PlaySFX($"HitBall{Random.Range(0, 2)}");
+
         if(countTowardsScore) {
             Server.Singleton.IncrementPlayerShotCount_ServerRpc();
         }
@@ -279,6 +287,7 @@ public class BallShooter : MonoBehaviour {
             Vector3 p = PairedRB.position + new Vector3(0, 1, 0);
             UpdateArrowValues(p);
             SetArrow();
+            PlaySFX("ShotReady");
         }
     }
 
@@ -301,6 +310,8 @@ public class BallShooter : MonoBehaviour {
         if(snapToHoleStart) {
             _lastStablePosition = null;
         }
+
+        PlaySFX("Reset");
     }
 
 
@@ -315,13 +326,7 @@ public class BallShooter : MonoBehaviour {
     }
 
 
-    public void SetColor(Color c) {
-        BallRenderer.material.SetColor("_Color", c);
-
-        Color outlineColor = c * OutlineIntensity;
-        outlineColor.a = OutlineAlpha;
-        BallOutline.OutlineColor = outlineColor;
-    }
+    public void SetColor(Color c) => BallUtil.SetColor(c);
 
 
     public void ClearLastStablePos() {
@@ -345,18 +350,32 @@ public class BallShooter : MonoBehaviour {
         if(Game.InMask(collision.gameObject.layer, Game.Manager.BallMask)) {
             // Handle player collision
             Hit_Internal(collision.impulse);
-        } 
+            PlaySFX("Impact_Ball");
+        } else {
+            string fast = collision.impulse.magnitude >= FastSFXThreshold ? "Fast" : "Slow";
+            PlaySFX($"Impact_Wall_{fast}");
+        }
     }
 
     private void OnTriggerEnter(Collider other) {
         if(Game.InMask(other.gameObject.layer, Game.Manager.GoalMask)) {
             // Mark hole as finished for this player
+            PlaySFX("Goal");
+            PlaySFX("GoalCelebrate");
             MarkWonHole(true); // Local handle
             Server.Singleton.MarkPlayerHoleWon_ServerRpc(); // Server handle
         }
         else if(Game.InMask(other.gameObject.layer, Game.Manager.BoundsMask)) {
             // Reset pos
             ResetBall(false);
+        }
+    }
+
+
+
+    private void PlaySFX(string id) {
+        if(SFXBank.TryGetValue(id, out AudioClipData data)) {
+            BallSFXPlayer.PlayOneShot(data.Clip, data.Volume * Options.Volume_Master * Options.Volume_SFX);
         }
     }
 }

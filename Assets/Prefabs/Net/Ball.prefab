@@ -1393,6 +1393,134 @@ Transform:
   m_Father: {fileID: 5628403121686134039}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4288512079736145061
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5729107900224511800}
+  - component: {fileID: 6763574437795975654}
+  m_Layer: 6
+  m_Name: SFX
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5729107900224511800
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4288512079736145061}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5628403121686134039}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &6763574437795975654
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4288512079736145061}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &8414506411583478658
 GameObject:
   m_ObjectHideFlags: 0
@@ -1404,6 +1532,7 @@ GameObject:
   - component: {fileID: 5628403121686134039}
   - component: {fileID: 105693272802394117}
   - component: {fileID: 4521951616379151100}
+  - component: {fileID: 5333561445354551626}
   - component: {fileID: 2977052089340659898}
   - component: {fileID: 2809994049187836204}
   - component: {fileID: 7218327213936755179}
@@ -1428,6 +1557,7 @@ Transform:
   m_Children:
   - {fileID: 1113916396452211462}
   - {fileID: 1458229329408742783}
+  - {fileID: 5729107900224511800}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1443,7 +1573,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 951099334
+  GlobalObjectIdHash: 3929484923
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
@@ -1459,16 +1589,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c0765120847d3f4d9106c28c57e7a91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  BallUtil: {fileID: 5333561445354551626}
   PairedRB: {fileID: 2977052089340659898}
   PairedCollider: {fileID: 2809994049187836204}
   SmoothTransform: {fileID: 7218327213936755179}
-  BallRenderer: {fileID: 9216544988083749533}
-  BallOutline: {fileID: 5326889200083516627}
   PairedNO: {fileID: 105693272802394117}
   ShotAssetContainer: {fileID: 4205422060850991257}
   GroundMask:
     serializedVersion: 2
     m_Bits: 129
+  FastSFXThreshold: 0.5
+  SFXBank:
+    AutoSerialize: 1
+    data:
+    - Key: ShotReady
+      Value:
+        Clip: {fileID: 8300000, guid: 026ca86966d420c4d95c488c25d7ce31, type: 3}
+        Volume: 1
+    - Key: HitBall00
+      Value:
+        Clip: {fileID: 8300000, guid: 05fd50b6bdb58184ea8a4bcc311a609d, type: 3}
+        Volume: 2
+    - Key: HitBall01
+      Value:
+        Clip: {fileID: 8300000, guid: dbaccdbc87c7c9c42a5b3e1f580dae96, type: 3}
+        Volume: 2
+    - Key: Impact_Ball
+      Value:
+        Clip: {fileID: 8300000, guid: b8d9cd51160734b478e32efb72c0d3c2, type: 3}
+        Volume: 1
+    - Key: Impact_Wall_Slow
+      Value:
+        Clip: {fileID: 8300000, guid: 63b6462e3deeb9e4eb98adabf84e2ac9, type: 3}
+        Volume: 0.65
+    - Key: Impact_Wall_Fast
+      Value:
+        Clip: {fileID: 8300000, guid: 9de98b59b1976e94ea6616c4c2d91099, type: 3}
+        Volume: 0.2
+    - Key: Reset
+      Value:
+        Clip: {fileID: 8300000, guid: bc95053bf1ccc0f49b0e98037ebf44ee, type: 3}
+        Volume: 4.25
+    - Key: Goal
+      Value:
+        Clip: {fileID: 8300000, guid: e71b3fe15243def4f8bfcc110ffe5baa, type: 3}
+        Volume: 1
+    - Key: GoalCelebrate
+      Value:
+        Clip: {fileID: 8300000, guid: 24a0da78ef8040a44a4e9617b8709fae, type: 3}
+        Volume: 1
   ShotArrowRenderer: {fileID: 7466198460272602751}
   ShotArrowMaxSizeScalar: 1.5
   GravityDir: {x: 0, y: -1, z: 0}
@@ -1502,6 +1671,22 @@ MonoBehaviour:
     m_RotationOrder: 4
   StopThreshold: 0.05
   StopDuration: 1
+  ResetCooldown: 1.5
+--- !u!114 &5333561445354551626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8414506411583478658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3210a6dae862654ab820abf4bca40d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BallRenderer: {fileID: 9216544988083749533}
+  BallOutline: {fileID: 5326889200083516627}
+  BallSFXPlayer: {fileID: 6763574437795975654}
   OutlineIntensity: 0.9
   OutlineAlpha: 0.126
 --- !u!54 &2977052089340659898
