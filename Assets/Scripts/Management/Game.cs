@@ -38,6 +38,11 @@ public static class Game {
  		#endif
 	}
 
+
+	public static bool InMask(int layer, LayerMask mask) {
+		return (mask & (1 << layer)) != 0;
+	}
+
     #endregion
 
 

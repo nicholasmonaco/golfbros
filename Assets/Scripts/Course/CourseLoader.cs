@@ -4,11 +4,24 @@ using UnityEngine;
 
 public class CourseLoader : MonoBehaviour {
     public CourseType LobbyCourse = CourseType.Sandbox;
+    
+    [Space(5)]
+
+    [SerializeField] private GameObject FlagPrefab;
+    [SerializeField] private LayerMask FlagRaycastMask;
+
     [SerializeField] private CourseBank CourseBank;
     
     [Space(10)]
 
     [SerializeField] private Transform CourseContainer;
+
+    private List<GameObject> HoleFlags;
+
+
+    private void Awake() {
+        HoleFlags = new List<GameObject>(3);
+    }
 
 
 
@@ -21,6 +34,11 @@ public class CourseLoader : MonoBehaviour {
             Game.Manager.CourseData = course;
 
             RenderSettings.skybox = data.SkyboxMaterial;
+
+            // Music
+            if(data.MusicData.HasMusic) {
+                StartCoroutine(Game.Manager.MusicPlayer.LoadMusic(data.MusicData, false));
+            }
 
         } else {
             // Disconnect from server
@@ -38,6 +56,12 @@ public class CourseLoader : MonoBehaviour {
 
 
     public void LoadHole(int index) {
+        // Clear old hole data
+        for(int i = 0;i<HoleFlags.Count;i++) {
+            Destroy(HoleFlags[i]);
+        }
+
+        // Set new hole data
         HoleData hole = Game.Manager.CourseData.HoleDataList[index];
 
         Transform ball = Server.GetLocalPlayer().Ball.transform;
@@ -60,5 +84,26 @@ public class CourseLoader : MonoBehaviour {
         }
 
         Game.Manager.CameraBallFollow.TrackedTransform = trackPoint;
+
+        // Spawn flags
+        foreach(GoalData goal in hole.GoalPoint) {
+            Vector3 flatforwards = hole.StartPoint.position - goal.GoalPoint.position;
+            flatforwards.y = 0;
+            Quaternion rotateTowardsStart = Quaternion.LookRotation(flatforwards.normalized, Vector3.up);
+
+            Vector3 pos;
+            if(goal.RaycastDown && Physics.Raycast(goal.GoalPoint.position, Vector3.down, out RaycastHit hit, 20, FlagRaycastMask, QueryTriggerInteraction.Ignore)) {
+                pos = hit.point;
+            } else {
+                pos = goal.GoalPoint.position;
+            }
+
+            GameObject flag = Instantiate(FlagPrefab, pos, rotateTowardsStart, CourseContainer);
+            HoleFlags.Add(flag);
+        }
+
+        // Set UI
+        Game.Manager.MenuManager.SetHoleIndex(index + 1);
+        Game.Manager.MenuManager.SetShotCount(0);
     }
 }

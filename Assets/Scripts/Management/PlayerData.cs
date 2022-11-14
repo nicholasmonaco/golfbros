@@ -10,6 +10,8 @@ public class PlayerData : INetworkSerializable {
 
     [NonSerialized] public ulong ClientId;
     public bool Ready;
+    public int CurrentShotCount = 0;
+    public bool WonCurrentHole = false;
 
     public NetworkBehaviourReference LinkedPlayerManagerRef;
     public PlayerManager LinkedPlayerManager => (PlayerManager)LinkedPlayerManagerRef;
@@ -23,6 +25,8 @@ public class PlayerData : INetworkSerializable {
         IsHost = false;
         PlayerName = "Player";
         PlayerColor = Color.white;
+        CurrentShotCount = 0;
+        WonCurrentHole = false;
     }
 
     public PlayerData(int playerId, string playerName, Color playerColor, bool isHost = false) {
@@ -30,6 +34,8 @@ public class PlayerData : INetworkSerializable {
         IsHost = isHost;
         PlayerName = playerName;
         PlayerColor = playerColor;
+        CurrentShotCount = 0;
+        WonCurrentHole = false;
     }
 
 
@@ -37,6 +43,8 @@ public class PlayerData : INetworkSerializable {
         PlayerName = other.PlayerName;
         PlayerColor = other.PlayerColor;
         Ready = other.Ready;
+        CurrentShotCount = other.CurrentShotCount;
+        WonCurrentHole = other.WonCurrentHole;
     }
 
 
@@ -45,6 +53,8 @@ public class PlayerData : INetworkSerializable {
         serializer.SerializeValue(ref IsHost);
         serializer.SerializeValue(ref PlayerColor);
         serializer.SerializeValue(ref Ready);
+        serializer.SerializeValue(ref CurrentShotCount);
+        serializer.SerializeValue(ref WonCurrentHole);
         serializer.SerializeValue(ref LinkedPlayerManagerRef);
 
         serializer.SerializeValue(ref PlayerName);

@@ -256,6 +256,8 @@ public class Server : NetworkBehaviour {
 
 
         LoadCurrentHole_ClientRpc(newConnectionOnly);
+
+        ResetPlayerShotCount_ServerRpc(locallyBuiltPlayerData.PlayerId);
     }
 
 
@@ -424,6 +426,11 @@ public class Server : NetworkBehaviour {
 
                 // Apply changes to ball/world
                 pd.LinkedPlayerManager.Ball.GetComponent<BallShooter>().SetColor(pd.PlayerColor);
+
+                // Update ui
+                if(pd.PlayerId == SelfPlayerId) {
+                    Game.Manager.MenuManager.SetShotCount(pd.CurrentShotCount);
+                }
                 
                 break;
             }
@@ -490,6 +497,8 @@ public class Server : NetworkBehaviour {
         StartGame_ClientRpc(closeMenus);
 
         LoadCurrentHole_ClientRpc();
+
+        ResetAllPlayerShotCounts_ServerRpc();
     }
 
 
@@ -532,12 +541,12 @@ public class Server : NetworkBehaviour {
 
 
 
-    [ServerRpc]
-    public void LoadHole_ServerRpc(int holeIndex) {
-        CurrentGameData.HoleIndex = holeIndex;
+    // [ServerRpc]
+    // public void LoadHole_ServerRpc(int holeIndex) {
+    //     CurrentGameData.HoleIndex = holeIndex;
 
-        SetCurrentGameData_ClientRpc(CurrentGameData);
-    }
+    //     SetCurrentGameData_ClientRpc(CurrentGameData);
+    // }
 
 
     [ClientRpc]
@@ -563,14 +572,104 @@ public class Server : NetworkBehaviour {
 
                 Game.Manager.CourseLoader.LoadHole(CurrentGameData.HoleIndex);
 
-                pd.LinkedPlayerManager.Ball.setPosition(hole.StartPoint.position, true);
-                pd.LinkedPlayerManager.Ball.rb.velocity = Vector3.zero;
-                pd.LinkedPlayerManager.Ball.rb.angularVelocity = Vector3.zero;
+                SmoothSyncNetcode ballSmooth = pd.LinkedPlayerManager.Ball;
+                BallShooter ball = ballSmooth.GetComponent<BallShooter>();
+
+                ballSmooth.setPosition(hole.StartPoint.position, true);
+                ball.ClearLastStablePos();
+                ballSmooth.rb.velocity = Vector3.zero;
+                ballSmooth.rb.angularVelocity = Vector3.zero;
+
+                ball.MarkWonHole(false);
 
                 break;
             }
         }
     }
+
+
+
+    [ServerRpc]
+    public void IncrementPlayerShotCount_ServerRpc(ServerRpcParams serverRpcParams = default) {
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.ClientId == serverRpcParams.Receive.SenderClientId) {
+                pd.CurrentShotCount++;
+
+                DistributePlayerDataChange_ClientRpc(pd);
+                break;
+            }
+        }
+    }
+
+    [ServerRpc]
+    public void ResetPlayerShotCount_ServerRpc(int playerId) {
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.PlayerId == playerId) {
+                pd.CurrentShotCount = 0;
+
+                DistributePlayerDataChange_ClientRpc(pd);
+                break;
+            }
+        }
+    }
+
+    [ServerRpc]
+    public void ResetAllPlayerShotCounts_ServerRpc() {
+        foreach(PlayerData pd in PlayerDataBank) {
+            pd.CurrentShotCount = 0;
+
+            DistributePlayerDataChange_ClientRpc(pd);
+        }
+    }
+
+
+    [ServerRpc]
+    public void MarkPlayerHoleWon_ServerRpc(ServerRpcParams serverRpcParams = default) {
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(pd.ClientId == serverRpcParams.Receive.SenderClientId) {
+                pd.WonCurrentHole = true;
+
+                DistributePlayerDataChange_ClientRpc(pd);
+
+                CheckForAllPlayersWon();
+                break;
+            }
+        }
+    }
+
+
+    private void CheckForAllPlayersWon() {
+        bool allWon = true;
+        foreach(PlayerData pd in PlayerDataBank) {
+            if(!pd.WonCurrentHole) {
+                allWon = false;
+                break;
+            }
+        }
+
+        if(allWon) {
+            // Move to next hole
+            bool wasLastHole = Game.Manager.CourseData.HoleDataList.Count == CurrentGameData.HoleIndex + 1;
+
+            Debug.Log($"Was last hole: {wasLastHole}  |  cur goal count: {Game.Manager.CourseData.HoleDataList.Count}");
+
+            if(!wasLastHole) {
+                // Go to next hole
+                CurrentGameData.HoleIndex++;
+                SetCurrentGameData_ClientRpc(CurrentGameData);
+
+                LoadCurrentHole_ClientRpc();
+
+                ResetAllPlayerShotCounts_ServerRpc();
+
+            } else {
+                // End course, reload to default lobby course (maybe after confirmation box, or stay here, idk whatever)
+                // todo
+            }
+        }
+    }
+
+    
 
 
     #endregion

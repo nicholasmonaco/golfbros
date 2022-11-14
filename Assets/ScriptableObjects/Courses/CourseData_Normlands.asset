@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c008b4e05bf14a34a965762a21c4de42, type: 3}
+  m_Name: CourseData_Normlands
+  m_EditorClassIdentifier: 
+  CourseName: Normlands
+  CoursePrefab: {fileID: 6764690578701932774, guid: d81e608be8016ee45aefd4b20d30d84b,
+    type: 3}
+  SkyboxMaterial: {fileID: 2100000, guid: 954c0d539f914184ba4562fd89810bca, type: 2}
+  MusicData:
+    Music_Intro:
+      m_AssetGUID: 361ee7657d9462b42875ffd7c770de75
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+    Music_Loop:
+      m_AssetGUID: 746481a32331a874bad9fdda8850da4c
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+    Volume: 0.025

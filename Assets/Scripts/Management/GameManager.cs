@@ -8,6 +8,13 @@ public class GameManager : MonoBehaviour {
     public CameraController CameraController;
     public MenuManager MenuManager;
     public CourseLoader CourseLoader;
+    [HideInInspector] public MusicPlayer MusicPlayer;
+
+    [Space(5)]
+
+    public LayerMask BallMask;
+    public LayerMask BoundsMask;
+    public LayerMask GoalMask;
 
     [Space(10)]
 

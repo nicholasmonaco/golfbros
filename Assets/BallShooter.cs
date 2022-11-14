@@ -14,19 +14,20 @@ public class BallShooter : MonoBehaviour {
     [SerializeField] private NetworkObject PairedNO;
     [SerializeField] private GameObject ShotAssetContainer;
     [SerializeField] private LayerMask GroundMask;
-    [SerializeField] private LayerMask BallMask;
 
     [Space(5)]
 
     [SerializeField] private MeshRenderer ShotArrowRenderer;
+    [SerializeField] private float ShotArrowMaxSizeScalar = 1;
     private Vector3 ShotArrowScale_Base;
-    private float ShotArrowScale_MaxZ;
+    private float ShotArrowScale_MaxZ => ShotArrowScale_Base.z;
 
 
     [Space(5)]
 
     
     private bool Shootable = false;
+    private bool WonHole = false;
     [HideInInspector] public Vector3 GravityDir = Vector3.down;
 
     [SerializeField] private float JumpForce = 5;
@@ -41,8 +42,22 @@ public class BallShooter : MonoBehaviour {
     [Space(5)]
 
     [SerializeField] private float Power_Force = 1;
+    [SerializeField] private AnimationCurve Power_Curve = AnimationCurve.Constant(0, 1, 1);
     [SerializeField] private float StopThreshold = 0.01f; 
     [SerializeField] private float StopDuration = 1.35f;
+
+    [Space(5)]
+
+    [SerializeField] private float ResetCooldown = 1.5f;
+
+
+    private Vector3? _lastStablePosition = null;
+
+
+    [Space(5)]
+
+    [SerializeField, Range(0, 1f)] private float OutlineIntensity = 0.8f;
+    [SerializeField, Range(0, 1f)] private float OutlineAlpha = 1;
 
 
     private float ForceAmount = 0;
@@ -51,6 +66,8 @@ public class BallShooter : MonoBehaviour {
     private float StopTimer = 0;
 
     private bool _lastReset = false;
+    private float _resetHoldTimer = 0;
+    private float _resetCooldownTimer = 0;
     private bool _lastJump = false;
     private float _jumpWaitTimer = 0;
 
@@ -63,11 +80,12 @@ public class BallShooter : MonoBehaviour {
         }
 
         ShotArrowScale_Base = ShotArrowRenderer.transform.localScale;
-        ShotArrowScale_MaxZ = ShotArrowScale_Base.z;
 
         _lastReset = false;
         _lastJump = false;
         _jumpWaitTimer = 0;
+        _resetHoldTimer = 0;
+        _resetCooldownTimer = 0;
 
         while(!IsGrounded()) yield return null;
 
@@ -75,8 +93,8 @@ public class BallShooter : MonoBehaviour {
     }
 
 
-    private bool IsGrounded() {
-        return Physics.Raycast(PairedRB.position, GravityDir, PairedCollider.radius + 0.01f, GroundMask, QueryTriggerInteraction.Ignore);
+    private bool IsGrounded(float extraDist = 0) {
+        return Physics.Raycast(PairedRB.position, GravityDir, PairedCollider.radius + 0.01f + extraDist, GroundMask, QueryTriggerInteraction.Ignore);
     }
 
 
@@ -90,6 +108,19 @@ public class BallShooter : MonoBehaviour {
 
 
     private void Update() {
+        Update_GroundCheck();
+        Update_JumpCheck();
+        Update_ResetCheck();
+    }
+
+
+    private void Update_GroundCheck() {
+        if(Shootable && !IsGrounded(0.001f)) {
+            ToggleLock(false);
+        }
+    }
+
+    private void Update_JumpCheck() {
         // Jump
         if(_jumpWaitTimer >= 0) _jumpWaitTimer -= Time.deltaTime;
 
@@ -98,15 +129,35 @@ public class BallShooter : MonoBehaviour {
             Jump();
         }
         _lastJump = inJump;
+    }
 
 
+    private void Update_ResetCheck() {
         // Reset
         bool inReset = InputHandler.Sets(InputState.Game).Reset;
-        if(inReset && !_lastReset) {
-            ResetBall();
+
+        if(_resetCooldownTimer < ResetCooldown) {
+            _resetCooldownTimer += Time.deltaTime;
+            _lastReset = inReset;
+            return;
+        }
+        
+        if(!inReset && _lastReset) {
+            ResetBall(false);
+            _lastReset = inReset;
+            return;
+        }
+
+        if (inReset) {
+            if(_resetHoldTimer > 2) {
+                ResetBall(true);
+            } else {
+                _resetHoldTimer += Time.deltaTime;
+            }
         }
         _lastReset = inReset;
     }
+
 
 
     public void FixedUpdate() {
@@ -170,9 +221,13 @@ public class BallShooter : MonoBehaviour {
         Quaternion shotRot = Quaternion.AngleAxis(camAngle + rotationAngle, normal);
         Vector3 forceDir = shotRot * Vector3.Cross(Vector3.right, normal);
 
-        float finalForce = force * Power_Force;
+        float finalForce = Power_Curve.Evaluate(force) * Power_Force;
 
         Hit_Internal(forceDir * finalForce);
+
+        if(countTowardsScore) {
+            Server.Singleton.IncrementPlayerShotCount_ServerRpc();
+        }
     }
 
     private void Hit_Internal(Vector3 forceDir) {
@@ -188,7 +243,7 @@ public class BallShooter : MonoBehaviour {
 
     private void SetArrow() {
         // Set scale
-        Vector3 arrowScale = new Vector3(ShotArrowScale_Base.x, ShotArrowScale_Base.y, ShotArrowScale_MaxZ * ForceAmount);
+        Vector3 arrowScale = new Vector3(ShotArrowScale_Base.x, ShotArrowScale_Base.y, ShotArrowScale_MaxZ * ForceAmount * ShotArrowMaxSizeScalar);
         ShotArrowRenderer.transform.localScale = arrowScale;
 
         // Set position
@@ -209,6 +264,8 @@ public class BallShooter : MonoBehaviour {
 
 
     public void ToggleLock(bool locked) {
+        if(WonHole) return;
+
         Shootable = locked;
         PairedRB.constraints = locked ? RigidbodyConstraints.FreezeAll : RigidbodyConstraints.None;
 
@@ -218,6 +275,7 @@ public class BallShooter : MonoBehaviour {
         ShotAssetContainer.SetActive(locked);
 
         if(locked) {
+            _lastStablePosition = PairedRB.position;
             Vector3 p = PairedRB.position + new Vector3(0, 1, 0);
             UpdateArrowValues(p);
             SetArrow();
@@ -226,19 +284,29 @@ public class BallShooter : MonoBehaviour {
 
 
 
-    public void ResetBall() {
+    public void ResetBall(bool snapToHoleStart) {
         HoleData curHole = Game.Manager.CourseData.HoleDataList[Server.CurrentGameData.HoleIndex];
 
         PairedRB.velocity = Vector3.zero;
         PairedRB.angularVelocity = Vector3.zero;
-        SmoothTransform.setPosition(curHole.StartPoint.position, true);
+
+        Vector3 pos = _lastStablePosition == null || snapToHoleStart ? curHole.StartPoint.position : _lastStablePosition.Value;
+        SmoothTransform.setPosition(pos, true);
         PairedRB.velocity = Vector3.zero;
         PairedRB.angularVelocity = Vector3.zero;
+
+        _resetHoldTimer = 0;
+        _resetCooldownTimer = 0;
+
+        if(snapToHoleStart) {
+            _lastStablePosition = null;
+        }
     }
 
 
     public void Jump() {
-        if(Shootable || _jumpWaitTimer > 0 || !IsGrounded()) return;
+        bool grounded = IsGrounded();
+        if(Shootable || _jumpWaitTimer > 0 || !grounded || _lastStablePosition == null) return;
 
         _jumpWaitTimer = JumpWaitDuration;
 
@@ -249,14 +317,46 @@ public class BallShooter : MonoBehaviour {
 
     public void SetColor(Color c) {
         BallRenderer.material.SetColor("_Color", c);
-        BallOutline.OutlineColor = c;
+
+        Color outlineColor = c * OutlineIntensity;
+        outlineColor.a = OutlineAlpha;
+        BallOutline.OutlineColor = outlineColor;
+    }
+
+
+    public void ClearLastStablePos() {
+        _lastStablePosition = null;
+    }
+
+    public void MarkWonHole(bool won) {
+        if(won) {
+            ToggleLock(true);
+            Shootable = false;
+
+            WonHole = won;
+        } else {
+            WonHole = won;
+            ToggleLock(false);
+        }
     }
 
 
     private void OnCollisionEnter(Collision collision) {
-        if((collision.gameObject.layer & BallMask) != 0) {
+        if(Game.InMask(collision.gameObject.layer, Game.Manager.BallMask)) {
             // Handle player collision
             Hit_Internal(collision.impulse);
+        } 
+    }
+
+    private void OnTriggerEnter(Collider other) {
+        if(Game.InMask(other.gameObject.layer, Game.Manager.GoalMask)) {
+            // Mark hole as finished for this player
+            MarkWonHole(true); // Local handle
+            Server.Singleton.MarkPlayerHoleWon_ServerRpc(); // Server handle
+        }
+        else if(Game.InMask(other.gameObject.layer, Game.Manager.BoundsMask)) {
+            // Reset pos
+            ResetBall(false);
         }
     }
 }

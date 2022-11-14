@@ -10,6 +10,8 @@ public class MusicData {
     [SerializeField] private AssetReference Music_Intro;
     [SerializeField] private AssetReference Music_Loop;
 
+    public bool HasMusic => Music_Loop.RuntimeKeyIsValid();
+
     [Space(3)]
 
     [Range(0, 1)] public float Volume = 1;

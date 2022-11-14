@@ -1469,17 +1469,41 @@ MonoBehaviour:
   GroundMask:
     serializedVersion: 2
     m_Bits: 129
-  BallMask:
-    serializedVersion: 2
-    m_Bits: 64
   ShotArrowRenderer: {fileID: 7466198460272602751}
+  ShotArrowMaxSizeScalar: 1.5
   GravityDir: {x: 0, y: -1, z: 0}
   JumpForce: 6
   JumpWaitDuration: 0.25
-  ViewportRadius: 0.1
-  Power_Force: 20
+  ViewportRadius: 0.165
+  Power_Force: 27.5
+  Power_Curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.001
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   StopThreshold: 0.05
-  StopDuration: 1.35
+  StopDuration: 1
+  OutlineIntensity: 0.9
+  OutlineAlpha: 0.126
 --- !u!54 &2977052089340659898
 Rigidbody:
   m_ObjectHideFlags: 0

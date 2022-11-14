@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c008b4e05bf14a34a965762a21c4de42, type: 3}
+  m_Name: CourseData_Glomplands
+  m_EditorClassIdentifier: 
+  CourseName: Glomplands
+  CoursePrefab: {fileID: 7697369544477416971, guid: 7b5756f4828383541b3ab3b0ece0806e,
+    type: 3}
+  SkyboxMaterial: {fileID: 2100000, guid: 48dd429319e75384ea7a9970f387f191, type: 2}
+  MusicData:
+    Music_Intro:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+    Music_Loop:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+    Volume: 1

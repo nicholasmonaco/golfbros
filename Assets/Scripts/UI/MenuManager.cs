@@ -25,6 +25,11 @@ public class MenuManager : MonoBehaviour {
 
     [SerializeField] private TMP_Text ConnectionStatusText;
 
+    [Space(5)]
+
+    [SerializeField] private TMP_Text Label_HoleIndex;
+    [SerializeField] private TMP_Text Label_ShotCounter;
+
 
 
     private void Start() {
@@ -119,12 +124,30 @@ public class MenuManager : MonoBehaviour {
         List<string> courses = new List<string>() {
             "Jacklands",
             "Juicelands",
-            "Froglands"
+            "Normlands",
+            "Sandox",
+            "Nutlands",
+            "Glomplands"
         };
 
         CourseDropdown.ClearOptions();
         CourseDropdown.AddOptions(courses);
     }
+
+
+
+    #region Game UI
+
+    public void SetHoleIndex(int index) {
+        Label_HoleIndex.text = $"Hole {index}";
+    }
+
+    public void SetShotCount(int count) {
+        Label_ShotCounter.text = $"Shots: <color=#b0940b>{count}</color>";
+    }
+
+    #endregion
+
 }
 
 public enum MenuScreenId {

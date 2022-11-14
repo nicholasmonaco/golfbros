@@ -24,7 +24,6 @@ public enum CameraTrackMode {
 [Serializable]
 public class GoalData {
     public Transform GoalPoint;
-    public Vector3 Scale = Vector3.one;
-
+    public bool RaycastDown = true;
     public Collider UsedCollider = null;
 }
