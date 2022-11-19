@@ -3167,11 +3167,11 @@ MonoBehaviour:
     - Key: MenuPop
       Value:
         Clip: {fileID: 8300000, guid: b7a4f6cc2b5899844befd42049d083f5, type: 3}
-        Volume: 0
+        Volume: 1
     - Key: HoleStart
       Value:
         Clip: {fileID: 8300000, guid: 474a77c496ba8f747b12bd34e7b0f14c, type: 3}
-        Volume: 0
+        Volume: 1
   BallMask:
     serializedVersion: 2
     m_Bits: 64
